@@ -78,7 +78,7 @@ class VoxCPMEngine:
             try:
                 from voxcpm import VoxCPM
                 # Load VoxCPM 2 model
-                self.model = VoxCPM.from_pretrained(self.model_id, load_denoiser=False)
+                self.model = VoxCPM.from_pretrained(self.model_id, load_denoiser=False, device=self.device)
                 if hasattr(self.model, "tts_model") and hasattr(self.model.tts_model, "sample_rate"):
                     self.sample_rate = self.model.tts_model.sample_rate
                 self.loading_state = "ready"
