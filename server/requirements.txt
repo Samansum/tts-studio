@@ -1,0 +1,8 @@
+litestar>=2.10.0
+uvicorn[standard]>=0.30.0
+torch>=2.4.0
+torchaudio>=2.4.0
+voxcpm>=2.0.0
+soundfile>=0.12.1
+numpy
+
