@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { Folder, ExternalLink, Hash } from 'lucide-vue-next'
+  import { Folder, ExternalLink, Hash, RotateCcw } from 'lucide-vue-next'
 
   const props = defineProps<{
     outputDir: string
@@ -10,6 +10,7 @@
     (e: 'update:outputDir', dir: string): void
     (e: 'update:startingSequence', seq: number): void
     (e: 'refreshFiles'): void
+    (e: 'syncSequence'): void
   }>()
 
   async function handleBrowseDir() {
@@ -59,6 +60,14 @@
             @input="handleSeqInput"
             class="w-12 bg-transparent text-right font-mono text-cyan-300 font-bold focus:outline-none"
           />
+          <button
+            type="button"
+            @click="emit('syncSequence')"
+            title="Auto-detect next sequence number from existing audio files"
+            class="p-0.5 rounded text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition"
+          >
+            <RotateCcw class="w-3 h-3" />
+          </button>
         </div>
       </div>
     </div>

@@ -1,5 +1,27 @@
 import { ref, computed } from 'vue'
-import type { BatchItem, BatchStatus, VoiceConfigData } from '../types'
+import type { BatchItem, BatchStatus, VoiceConfigData, AudioFileItem } from '../types'
+
+export function getNextSequenceFromFiles(files: (AudioFileItem | string)[]): number {
+  let maxSeq = 0
+  for (const item of files) {
+    const name = typeof item === 'string' ? item : item.name || ''
+    const match =
+      name.match(/^speech_(\d+)\.wav$/i) ||
+      name.match(/(?:^|_)(\d+)\.wav$/i) ||
+      name.match(/(\d+)/)
+
+    const seq = match
+      ? parseInt(match[1], 10)
+      : typeof item !== 'string'
+        ? (item.sequenceNumber ?? 0)
+        : 0
+
+    if (!isNaN(seq) && seq > maxSeq) {
+      maxSeq = seq
+    }
+  }
+  return maxSeq + 1
+}
 
 export function useBatchTTS() {
   const items = ref<BatchItem[]>([
@@ -35,20 +57,31 @@ export function useBatchTTS() {
       const seq = startingSequence.value + index
       item.sequence = seq
       item.sequenceBadge = seq.toString().padStart(4, '0')
-      item.outputFileName = `speech_${item.sequenceBadge}.wav`
+      if (item.status !== 'completed') {
+        item.outputFileName = `speech_${item.sequenceBadge}.wav`
+      }
       item.characterCount = item.text.length
     })
   }
 
+  function syncStartingSequence(files: (AudioFileItem | string)[]) {
+    const nextSeq = getNextSequenceFromFiles(files)
+    startingSequence.value = nextSeq
+    recalculateSequences()
+  }
+
   function addItem(initialText = '') {
+    const nextSeq = startingSequence.value + items.value.length
+    const badge = nextSeq.toString().padStart(4, '0')
     const newItem: BatchItem = {
       id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      sequence: 1,
-      sequenceBadge: '0001',
+      sequence: nextSeq,
+      sequenceBadge: badge,
       text: initialText,
       characterCount: initialText.length,
       status: 'pending',
       progress: 0,
+      outputFileName: `speech_${badge}.wav`,
     }
     items.value.push(newItem)
     recalculateSequences()
@@ -99,7 +132,10 @@ export function useBatchTTS() {
     }
   }
 
-  function clearAll() {
+  function clearAll(nextSeq?: number) {
+    if (typeof nextSeq === 'number' && nextSeq >= 1) {
+      startingSequence.value = nextSeq
+    }
     items.value = []
     addItem('')
   }
@@ -302,6 +338,7 @@ export function useBatchTTS() {
     clearAll,
     importBulkText,
     recalculateSequences,
+    syncStartingSequence,
     startBatchSynthesis,
     cancelBatch,
   }

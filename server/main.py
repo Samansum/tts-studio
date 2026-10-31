@@ -175,7 +175,11 @@ async def list_audio_files(directory: str) -> List[Dict[str, Any]]:
                     pass
 
                 # Extract sequence number if present
-                m = re.search(r'(\d+)', name)
+                m = (
+                    re.search(r'speech_(\d+)\.wav$', name, re.IGNORECASE)
+                    or re.search(r'(?:^|_)(\d+)\.wav$', name, re.IGNORECASE)
+                    or re.search(r'(\d+)', name)
+                )
                 seq_num = int(m.group(1)) if m else None
 
                 files.append({

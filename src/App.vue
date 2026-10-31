@@ -8,7 +8,7 @@
   import AudioPlayerBar from './components/AudioPlayerBar.vue'
   import DeleteModal from './components/DeleteModal.vue'
 
-  import { useBatchTTS } from './composables/useBatchTTS'
+  import { useBatchTTS, getNextSequenceFromFiles } from './composables/useBatchTTS'
   import { useAudioPlayer } from './composables/useAudioPlayer'
   import type { AudioFileItem, VoiceConfigData } from './types'
 
@@ -54,12 +54,11 @@
   const fileToDelete = ref<AudioFileItem | null>(null)
 
   // Refresh output directory files
-  async function refreshFiles() {
+  async function refreshFiles(autoSyncSeq = false) {
     if (!outputDir.value) return
+    let list: AudioFileItem[] = []
     if (window.electronAPI) {
-      const list = await window.electronAPI.listFiles(outputDir.value)
-      audioFiles.value = list
-      setPlaylist(list)
+      list = await window.electronAPI.listFiles(outputDir.value)
     } else {
       // Web fallback test via backend API
       try {
@@ -67,13 +66,60 @@
           `http://127.0.0.1:8000/api/files/list?directory=${encodeURIComponent(outputDir.value)}`
         )
         if (res.ok) {
-          const list = await res.json()
-          audioFiles.value = list
-          setPlaylist(list)
+          list = await res.json()
         }
       } catch (e) {
         console.warn('Could not fetch file list from backend:', e)
       }
+    }
+    audioFiles.value = list
+    setPlaylist(list)
+
+    if (autoSyncSeq && batchStatus.value !== 'generating') {
+      const nextSeq = getNextSequenceFromFiles(list)
+      startingSequence.value = nextSeq
+      recalculateSequences()
+    }
+  }
+
+  // Update output directory and sync start sequence with destination
+  async function handleOutputDirUpdate(dir: string) {
+    outputDir.value = dir
+    await refreshFiles(true)
+  }
+
+  // Explicitly sync starting sequence from current audio files in output dir
+  function handleSyncSequence() {
+    const nextSeq = getNextSequenceFromFiles(audioFiles.value)
+    startingSequence.value = nextSeq
+    recalculateSequences()
+  }
+
+  // When clearing all batch items, ensure startingSequence follows biggest number in output dir
+  function handleClearAll() {
+    const nextSeq = getNextSequenceFromFiles(audioFiles.value)
+    clearAll(nextSeq)
+  }
+
+  // When importing bulk text, if untouched/empty, start after highest existing number
+  function handleImportBulk(rawText: string, mode: 'lines' | 'sentences') {
+    const isEmptyOrUntouched =
+      items.value.length === 0 ||
+      (items.value.length === 1 && items.value[0].text.trim() === '')
+    if (isEmptyOrUntouched) {
+      const nextSeq = getNextSequenceFromFiles(audioFiles.value)
+      startingSequence.value = nextSeq
+    }
+    importBulkText(rawText, mode)
+  }
+
+  // When removing an item, if all items were cleared, align start sequence with files
+  function handleRemoveItem(id: string) {
+    removeItem(id)
+    if (items.value.length === 1 && items.value[0].text.trim() === '') {
+      const nextSeq = getNextSequenceFromFiles(audioFiles.value)
+      startingSequence.value = nextSeq
+      recalculateSequences()
     }
   }
 
@@ -93,8 +139,10 @@
     try {
       await startBatchSynthesis(outputDir.value, voiceConfig.value, (_newFile) => {
         // Refresh audio preview list as each file is completed
-        refreshFiles()
+        refreshFiles(false)
       })
+      // Refresh files after batch completes
+      await refreshFiles(false)
     } catch (err: any) {
       alert(`Batch Synthesis Error: ${err.message || err}`)
     }
@@ -143,7 +191,7 @@
       }
       showDeleteModal.value = false
       fileToDelete.value = null
-      await refreshFiles()
+      await refreshFiles(false)
     } else {
       alert('Failed to delete file from disk.')
     }
@@ -156,14 +204,9 @@
 
   onMounted(async () => {
     // Set default output dir under user Documents if not set
-    if (window.electronAPI) {
-      const defaultDocs = 'C:\\Users\\Saman\\Documents\\tts-studio\\output'
-      outputDir.value = defaultDocs
-      refreshFiles()
-    } else {
-      outputDir.value = 'C:\\Users\\Saman\\Documents\\tts-studio\\output'
-      refreshFiles()
-    }
+    const defaultDocs = 'C:\\Users\\Saman\\Documents\\tts-studio\\output'
+    outputDir.value = defaultDocs
+    await refreshFiles(true)
   })
 </script>
 
@@ -181,9 +224,10 @@
           <OutputManager
             :output-dir="outputDir"
             :starting-sequence="startingSequence"
-            @update:output-dir="outputDir = $event"
+            @update:output-dir="handleOutputDirUpdate"
             @update:starting-sequence="startingSequence = $event"
-            @refresh-files="refreshFiles"
+            @refresh-files="() => refreshFiles(false)"
+            @sync-sequence="handleSyncSequence"
           />
 
           <VoiceConfig v-model="voiceConfig" />
@@ -198,12 +242,12 @@
             :completed-count="completedCount"
             :batch-progress-percent="batchProgressPercent"
             @add-item="addItem()"
-            @remove-item="removeItem($event)"
+            @remove-item="handleRemoveItem"
             @duplicate-item="duplicateItem($event)"
             @move-item="(idx, dir) => moveItem(idx, dir)"
             @update-text="(id, txt) => updateText(id, txt)"
-            @clear-all="clearAll()"
-            @import-bulk="(raw, mode) => importBulkText(raw, mode)"
+            @clear-all="handleClearAll"
+            @import-bulk="handleImportBulk"
             @start-batch="handleStartBatch"
             @cancel-batch="cancelBatch"
           />

@@ -249,7 +249,10 @@ function registerIpcHandlers() {
         const fullPath = path.join(dirPath, name)
         try {
           const st = await fs.promises.stat(fullPath)
-          const m = name.match(/(\d+)/)
+          const m =
+            name.match(/speech_(\d+)\.wav$/i) ||
+            name.match(/(?:^|_)(\d+)\.wav$/i) ||
+            name.match(/(\d+)/)
           const seq = m ? parseInt(m[1], 10) : undefined
           items.push({
             id: name,
