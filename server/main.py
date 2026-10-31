@@ -199,7 +199,7 @@ async def list_audio_files(directory: str) -> List[Dict[str, Any]]:
     return files
 
 @get("/api/files/audio")
-async def stream_audio_file(path: str) -> File:
+async def stream_audio_file(path: str, t: Optional[str] = None) -> File:
     """Streams a WAV audio file for playback with range support."""
     if not path or not os.path.exists(path):
         raise NotFoundException(detail="Audio file not found")

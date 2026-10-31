@@ -12,9 +12,10 @@ const playlist = ref<AudioFileItem[]>([])
 
 let audioElement: HTMLAudioElement | null = null
 
-function getStreamUrl(filePath: string): string {
+function getStreamUrl(filePath: string, cacheBust?: number): string {
   // Use Litestar audio streaming endpoint with encoded path
-  return `http://127.0.0.1:8000/api/files/audio?path=${encodeURIComponent(filePath)}`
+  const bust = cacheBust ? `&t=${cacheBust}` : ''
+  return `http://127.0.0.1:8000/api/files/audio?path=${encodeURIComponent(filePath)}${bust}`
 }
 
 function loadTrack(track: AudioFileItem, autoPlay = true) {
@@ -23,7 +24,7 @@ function loadTrack(track: AudioFileItem, autoPlay = true) {
   currentTime.value = 0
   duration.value = track.duration || 0
 
-  audio.src = getStreamUrl(track.path)
+  audio.src = getStreamUrl(track.path, track.mtime || Date.now())
   audio.playbackRate = playbackRate.value
 
   if (autoPlay) {
@@ -164,6 +165,26 @@ export function useAudioPlayer() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  function reloadCurrentTrack(forcePlay = false) {
+    if (activeTrack.value) {
+      const audio = getAudioElement()
+      const shouldPlay = forcePlay || isPlaying.value
+      audio.src = getStreamUrl(activeTrack.value.path, Date.now())
+      audio.load()
+      if (shouldPlay) {
+        audio
+          .play()
+          .then(() => {
+            isPlaying.value = true
+          })
+          .catch((err) => {
+            console.warn('Playback resume failed:', err)
+            isPlaying.value = false
+          })
+      }
+    }
+  }
+
   return {
     activeTrack,
     isPlaying,
@@ -175,6 +196,7 @@ export function useAudioPlayer() {
     playlist,
     progressPercent,
     loadTrack,
+    reloadCurrentTrack,
     togglePlay,
     seek,
     setVolume,

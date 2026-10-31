@@ -6,9 +6,7 @@ export function getNextSequenceFromFiles(files: (AudioFileItem | string)[]): num
   for (const item of files) {
     const name = typeof item === 'string' ? item : item.name || ''
     const match =
-      name.match(/^speech_(\d+)\.wav$/i) ||
-      name.match(/(?:^|_)(\d+)\.wav$/i) ||
-      name.match(/(\d+)/)
+      name.match(/^speech_(\d+)\.wav$/i) || name.match(/(?:^|_)(\d+)\.wav$/i) || name.match(/(\d+)/)
 
     const seq = match
       ? parseInt(match[1], 10)
@@ -57,7 +55,8 @@ export function useBatchTTS() {
       const seq = startingSequence.value + index
       item.sequence = seq
       item.sequenceBadge = seq.toString().padStart(4, '0')
-      if (item.status !== 'completed') {
+      // Only assign default outputFileName if this item hasn't already generated audio
+      if (item.status !== 'completed' && !item.outputPath) {
         item.outputFileName = `speech_${item.sequenceBadge}.wav`
       }
       item.characterCount = item.text.length
@@ -108,6 +107,8 @@ export function useBatchTTS() {
         characterCount: target.text.length,
         status: 'pending',
         progress: 0,
+        outputPath: undefined,
+        outputFileName: undefined,
       }
       items.value.splice(idx + 1, 0, duplicated)
       recalculateSequences()
@@ -194,12 +195,13 @@ export function useBatchTTS() {
       throw new Error('Please select an output directory before synthesizing.')
     }
 
-    // Reset status of non-completed items
+    // Reset status of items
     items.value.forEach((item) => {
-      if (item.status !== 'completed') {
-        item.status = 'pending'
-        item.progress = 0
-        item.error = undefined
+      item.status = 'pending'
+      item.progress = 0
+      item.error = undefined
+      if (!item.outputFileName) {
+        item.outputFileName = `speech_${item.sequenceBadge}.wav`
       }
     })
 
@@ -322,6 +324,142 @@ export function useBatchTTS() {
     }
   }
 
+  async function startSingleSynthesis(
+    itemId: string,
+    outputDir: string,
+    voiceConfig: VoiceConfigData,
+    onFileGenerated?: (outputPath: string) => void
+  ) {
+    if (batchStatus.value === 'generating' || currentProcessingId.value !== null) return
+    if (!outputDir) {
+      throw new Error('Please select an output directory before synthesizing.')
+    }
+
+    const target = items.value.find((i) => i.id === itemId)
+    if (!target) return
+    if (!target.text.trim()) {
+      throw new Error('Text segment cannot be empty.')
+    }
+
+    // Ensure outputFileName is set (preserves existing outputFileName so it overrides previously generated audio)
+    if (!target.outputFileName) {
+      target.outputFileName = `speech_${target.sequenceBadge}.wav`
+    }
+
+    target.status = 'processing'
+    target.progress = 0
+    target.error = undefined
+    currentProcessingId.value = target.id
+    abortController.value = new AbortController()
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/tts/batch-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [
+            {
+              id: target.id,
+              sequence: target.sequence,
+              text: target.text,
+              outputFileName: target.outputFileName,
+              outputPath: `${outputDir}/${target.outputFileName}`,
+            },
+          ],
+          voice_config: voiceConfig,
+          output_dir: outputDir,
+        }),
+        signal: abortController.value.signal,
+      })
+
+      if (!response.ok || !response.body) {
+        throw new Error(`Failed to synthesize item: HTTP ${response.status}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const events = buffer.split('\n\n')
+        buffer = events.pop() || ''
+
+        for (const rawEvent of events) {
+          if (!rawEvent.trim()) continue
+          const lines = rawEvent.split('\n')
+          let eventType = 'message'
+          let eventData = ''
+
+          for (const line of lines) {
+            if (line.startsWith('event:')) {
+              eventType = line.replace('event:', '').trim()
+            } else if (line.startsWith('data:')) {
+              eventData = line.replace('data:', '').trim()
+            }
+          }
+
+          if (!eventData) continue
+
+          try {
+            const data = JSON.parse(eventData)
+
+            if (eventType === 'item_start') {
+              target.status = 'processing'
+              target.progress = 5
+            } else if (eventType === 'progress') {
+              target.progress = data.progress || 0
+            } else if (eventType === 'item_complete') {
+              target.status = 'completed'
+              target.progress = 100
+              target.outputPath = data.outputPath
+              target.outputFileName = data.outputFileName
+              target.duration = data.duration
+              if (onFileGenerated && data.outputPath) {
+                onFileGenerated(data.outputPath)
+              }
+            } else if (eventType === 'error') {
+              target.status = 'failed'
+              target.error = data.error
+            }
+          } catch (e) {
+            console.warn('Error parsing SSE payload:', e, rawEvent)
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        target.status = target.outputPath ? 'completed' : 'pending'
+        target.progress = target.outputPath ? 100 : 0
+      } else {
+        target.status = 'failed'
+        target.error = err.message || String(err)
+        console.error('Single item synthesis error:', err)
+        throw err
+      }
+    } finally {
+      currentProcessingId.value = null
+      abortController.value = null
+    }
+  }
+
+  function cancelSingleSynthesis(itemId?: string) {
+    if (abortController.value) {
+      abortController.value.abort()
+      if (itemId) {
+        const target = items.value.find((i) => i.id === itemId)
+        if (target) {
+          target.status = target.outputPath ? 'completed' : 'pending'
+          target.progress = target.outputPath ? 100 : 0
+        }
+      }
+      currentProcessingId.value = null
+    }
+  }
+
   return {
     items,
     startingSequence,
@@ -341,6 +479,7 @@ export function useBatchTTS() {
     syncStartingSequence,
     startBatchSynthesis,
     cancelBatch,
+    startSingleSynthesis,
+    cancelSingleSynthesis,
   }
 }
-

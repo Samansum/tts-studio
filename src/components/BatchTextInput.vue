@@ -21,6 +21,7 @@
   defineProps<{
     items: BatchItem[]
     batchStatus: BatchStatus
+    currentProcessingId?: string | null
     totalCharacters: number
     completedCount: number
     batchProgressPercent: number
@@ -36,11 +37,20 @@
     (e: 'importBulk', rawText: string, mode: 'lines' | 'sentences'): void
     (e: 'startBatch'): void
     (e: 'cancelBatch'): void
+    (e: 'synthesizeItem', id: string): void
+    (e: 'cancelSingleItem', id: string): void
   }>()
 
   const showImportModal = ref(false)
   const bulkText = ref('')
   const splitMode = ref<'lines' | 'sentences'>('sentences')
+
+  function getItemSynthesizeTooltip(item: BatchItem): string {
+    if (item.status === 'processing') return 'Cancel synthesis'
+    if (!item.text.trim()) return 'Enter text to synthesize'
+    if (item.status === 'completed') return 'Re-synthesize this segment (overwrite audio)'
+    return 'Synthesize this segment'
+  }
 
   function handleBulkImportConfirm() {
     if (bulkText.value.trim()) {
@@ -81,7 +91,7 @@
       <div class="flex items-center space-x-2">
         <button
           @click="showImportModal = true"
-          :disabled="batchStatus === 'generating'"
+          :disabled="batchStatus === 'generating' || currentProcessingId !== null"
           class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5 disabled:opacity-40"
         >
           <Split class="w-3.5 h-3.5 text-indigo-400" />
@@ -90,7 +100,7 @@
 
         <button
           @click="emit('addItem')"
-          :disabled="batchStatus === 'generating'"
+          :disabled="batchStatus === 'generating' || currentProcessingId !== null"
           class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5 disabled:opacity-40"
         >
           <Plus class="w-3.5 h-3.5 text-cyan-400" />
@@ -99,7 +109,7 @@
 
         <button
           @click="emit('clearAll')"
-          :disabled="batchStatus === 'generating'"
+          :disabled="batchStatus === 'generating' || currentProcessingId !== null"
           class="px-2.5 py-1.5 rounded-lg hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-medium border border-transparent hover:border-rose-900/40 transition disabled:opacity-40"
         >
           Clear
@@ -109,10 +119,11 @@
         <button
           v-if="batchStatus !== 'generating'"
           @click="emit('startBatch')"
-          class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-cyan-500/20 transition flex items-center space-x-1.5 active:scale-95"
+          :disabled="currentProcessingId !== null"
+          class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-cyan-500/20 transition flex items-center space-x-1.5 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
         >
           <Play class="w-3.5 h-3.5 fill-current" />
-          <span>Synthesize Batch</span>
+          <span>Synthesize All</span>
         </button>
 
         <!-- Cancel Batch Button -->
@@ -211,11 +222,42 @@
             </div>
           </div>
 
-          <!-- Card Actions (Move up, down, duplicate, delete) -->
+          <!-- Card Actions (Synthesize single item, move up, down, duplicate, delete) -->
           <div class="flex items-center space-x-1">
+            <!-- Single Segment Synthesize / Cancel Button -->
+            <button
+              v-if="currentProcessingId === item.id && batchStatus !== 'generating'"
+              @click="emit('cancelSingleItem', item.id)"
+              class="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-400 border border-rose-800/60 transition flex items-center justify-center active:scale-95 shadow-sm"
+              title="Cancel synthesis"
+            >
+              <Square class="w-3.5 h-3.5 fill-current" />
+            </button>
+            <button
+              v-else
+              @click="emit('synthesizeItem', item.id)"
+              :disabled="
+                batchStatus === 'generating' ||
+                (currentProcessingId !== null && currentProcessingId !== item.id) ||
+                !item.text.trim()
+              "
+              class="p-1.5 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-400 hover:text-cyan-300 border border-cyan-800/40 hover:border-cyan-700/60 disabled:opacity-25 disabled:pointer-events-none transition flex items-center justify-center active:scale-95 shadow-sm"
+              :title="getItemSynthesizeTooltip(item)"
+            >
+              <Loader2
+                v-if="item.status === 'processing'"
+                class="w-3.5 h-3.5 animate-spin text-cyan-400"
+              />
+              <Play v-else class="w-3.5 h-3.5 fill-current" />
+            </button>
+
+            <div class="h-3.5 w-px bg-slate-800 mx-0.5"></div>
+
             <button
               @click="emit('moveItem', index, 'up')"
-              :disabled="index === 0 || batchStatus === 'generating'"
+              :disabled="
+                index === 0 || batchStatus === 'generating' || currentProcessingId !== null
+              "
               class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition"
               title="Move Up"
             >
@@ -223,7 +265,11 @@
             </button>
             <button
               @click="emit('moveItem', index, 'down')"
-              :disabled="index === items.length - 1 || batchStatus === 'generating'"
+              :disabled="
+                index === items.length - 1 ||
+                batchStatus === 'generating' ||
+                currentProcessingId !== null
+              "
               class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition"
               title="Move Down"
             >
@@ -231,7 +277,7 @@
             </button>
             <button
               @click="emit('duplicateItem', item.id)"
-              :disabled="batchStatus === 'generating'"
+              :disabled="batchStatus === 'generating' || currentProcessingId !== null"
               class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition"
               title="Duplicate Card"
             >
@@ -239,7 +285,7 @@
             </button>
             <button
               @click="emit('removeItem', item.id)"
-              :disabled="batchStatus === 'generating'"
+              :disabled="batchStatus === 'generating' || currentProcessingId !== null"
               class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-400 disabled:opacity-20 transition"
               title="Remove Card"
             >

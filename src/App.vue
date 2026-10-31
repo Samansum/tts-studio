@@ -17,6 +17,7 @@
     items,
     startingSequence,
     batchStatus,
+    currentProcessingId,
     totalCharacters,
     completedCount,
     batchProgressPercent,
@@ -30,10 +31,13 @@
     recalculateSequences,
     startBatchSynthesis,
     cancelBatch,
+    startSingleSynthesis,
+    cancelSingleSynthesis,
   } = useBatchTTS()
 
   // Audio Player orchestration
-  const { activeTrack, isPlaying, loadTrack, togglePlay, setPlaylist } = useAudioPlayer()
+  const { activeTrack, isPlaying, loadTrack, reloadCurrentTrack, togglePlay, setPlaylist } =
+    useAudioPlayer()
 
   // Voice Configuration state
   const voiceConfig = ref<VoiceConfigData>({
@@ -75,6 +79,13 @@
     audioFiles.value = list
     setPlaylist(list)
 
+    if (activeTrack.value) {
+      const match = list.find((f) => f.path === activeTrack.value?.path)
+      if (match) {
+        activeTrack.value = match
+      }
+    }
+
     if (autoSyncSeq && batchStatus.value !== 'generating') {
       const nextSeq = getNextSequenceFromFiles(list)
       startingSequence.value = nextSeq
@@ -104,8 +115,7 @@
   // When importing bulk text, if untouched/empty, start after highest existing number
   function handleImportBulk(rawText: string, mode: 'lines' | 'sentences') {
     const isEmptyOrUntouched =
-      items.value.length === 0 ||
-      (items.value.length === 1 && items.value[0].text.trim() === '')
+      items.value.length === 0 || (items.value.length === 1 && items.value[0].text.trim() === '')
     if (isEmptyOrUntouched) {
       const nextSeq = getNextSequenceFromFiles(audioFiles.value)
       startingSequence.value = nextSeq
@@ -146,6 +156,41 @@
     } catch (err: any) {
       alert(`Batch Synthesis Error: ${err.message || err}`)
     }
+  }
+
+  // Single Item Synthesis trigger
+  async function handleSynthesizeItem(itemId: string) {
+    if (!outputDir.value) {
+      if (window.electronAPI) {
+        const picked = await window.electronAPI.selectDirectory()
+        if (picked) {
+          outputDir.value = picked
+        } else {
+          return
+        }
+      } else {
+        alert('Please select an output directory before synthesizing.')
+        return
+      }
+    }
+
+    try {
+      await startSingleSynthesis(itemId, outputDir.value, voiceConfig.value, (newPath) => {
+        refreshFiles(false)
+        if (activeTrack.value?.path === newPath) {
+          reloadCurrentTrack()
+        }
+      })
+      await refreshFiles(false)
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        alert(`Synthesis Error: ${err.message || err}`)
+      }
+    }
+  }
+
+  function handleCancelSingleItem(itemId: string) {
+    cancelSingleSynthesis(itemId)
   }
 
   // Track selection & playback from preview list
@@ -238,6 +283,7 @@
           <BatchTextInput
             :items="items"
             :batch-status="batchStatus"
+            :current-processing-id="currentProcessingId"
             :total-characters="totalCharacters"
             :completed-count="completedCount"
             :batch-progress-percent="batchProgressPercent"
@@ -250,6 +296,8 @@
             @import-bulk="handleImportBulk"
             @start-batch="handleStartBatch"
             @cancel-batch="cancelBatch"
+            @synthesize-item="handleSynthesizeItem"
+            @cancel-single-item="handleCancelSingleItem"
           />
         </div>
       </section>
