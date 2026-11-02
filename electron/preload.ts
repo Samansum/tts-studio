@@ -17,6 +17,9 @@ const api: ElectronAPI = {
   deleteFile: (filePath: string): Promise<boolean> => {
     return ipcRenderer.invoke('file:delete', filePath)
   },
+  deleteFiles: (filePaths: string[]): Promise<boolean> => {
+    return ipcRenderer.invoke('file:deleteAll', filePaths)
+  },
   listFiles: (dirPath: string): Promise<AudioFileItem[]> => {
     return ipcRenderer.invoke('file:list', dirPath)
   },

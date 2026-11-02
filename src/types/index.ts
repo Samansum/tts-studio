@@ -87,6 +87,7 @@ export interface ElectronAPI {
   ) => Promise<string | null>
   openPath: (filePath: string) => Promise<void>
   deleteFile: (filePath: string) => Promise<boolean>
+  deleteFiles?: (filePaths: string[]) => Promise<boolean>
   listFiles: (dirPath: string) => Promise<AudioFileItem[]>
   getBackendStatus: () => Promise<{ pid: number | null; port: number; status: string }>
   getPredefinedLoras: () => Promise<LoraItem[]>

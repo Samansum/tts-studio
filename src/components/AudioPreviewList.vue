@@ -17,12 +17,14 @@
     activeTrack: AudioFileItem | null
     isPlaying: boolean
     outputDir: string
+    isGenerating?: boolean
   }>()
 
   const emit = defineEmits<{
     (e: 'selectTrack', track: AudioFileItem): void
     (e: 'togglePlay', track: AudioFileItem): void
     (e: 'requestDelete', track: AudioFileItem): void
+    (e: 'requestClearAll'): void
     (e: 'refresh'): void
   }>()
 
@@ -72,20 +74,38 @@
 <template>
   <div class="studio-card rounded-xl p-3.5 flex flex-col h-full space-y-3">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5">
-      <div class="flex items-center space-x-2">
-        <Music class="w-4 h-4 text-zinc-400" />
-        <h3 class="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5 gap-2">
+      <div class="flex items-center space-x-2 min-w-0">
+        <Music class="w-4 h-4 text-zinc-400 shrink-0" />
+        <h3
+          class="text-xs font-semibold text-zinc-200 uppercase tracking-wider truncate"
+          title="Generated Audio Library"
+        >
           Generated Audio Library
         </h3>
         <span
-          class="font-mono text-[11px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-bold border border-zinc-700/60"
+          class="font-mono text-[11px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-bold border border-zinc-700/60 shrink-0"
         >
           {{ files.length }}
         </span>
       </div>
 
-      <div class="flex items-center space-x-1.5">
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <button
+          :disabled="files.length === 0 || isGenerating"
+          @click="emit('requestClearAll')"
+          class="flex items-center space-x-1 px-2 py-1 rounded-lg text-xs transition"
+          :class="[
+            files.length > 0 && !isGenerating
+              ? 'text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 border border-zinc-800 hover:border-rose-900/50 cursor-pointer'
+              : 'text-zinc-600 border border-transparent opacity-40 cursor-not-allowed',
+          ]"
+          :title="isGenerating ? 'Cannot clear files while synthesis is running' : 'Clear all audio files'"
+        >
+          <Trash2 class="w-3.5 h-3.5" />
+          <span class="text-[11px] font-medium">Clear All</span>
+        </button>
+
         <button
           @click="handleRefresh"
           class="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition"

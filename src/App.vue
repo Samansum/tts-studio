@@ -36,7 +36,7 @@
   } = useBatchTTS()
 
   // Audio Player orchestration
-  const { activeTrack, isPlaying, loadTrack, reloadCurrentTrack, togglePlay, setPlaylist } =
+  const { activeTrack, isPlaying, loadTrack, reloadCurrentTrack, togglePlay, setPlaylist, stop } =
     useAudioPlayer()
 
   // Voice Configuration state
@@ -58,6 +58,7 @@
 
   // Delete modal state
   const showDeleteModal = ref(false)
+  const deleteModalMode = ref<'single' | 'all'>('single')
   const fileToDelete = ref<AudioFileItem | null>(null)
 
   // Refresh output directory files
@@ -211,11 +212,27 @@
 
   // Delete handling
   function handleRequestDelete(track: AudioFileItem) {
+    deleteModalMode.value = 'single'
     fileToDelete.value = track
     showDeleteModal.value = true
   }
 
-  async function handleConfirmDelete(track: AudioFileItem) {
+  function handleRequestClearAll() {
+    if (audioFiles.value.length === 0) return
+    deleteModalMode.value = 'all'
+    fileToDelete.value = null
+    showDeleteModal.value = true
+  }
+
+  async function handleConfirmDelete() {
+    if (deleteModalMode.value === 'all') {
+      await handleConfirmClearAll()
+      return
+    }
+
+    const track = fileToDelete.value
+    if (!track) return
+
     let success = false
     if (window.electronAPI) {
       success = await window.electronAPI.deleteFile(track.path)
@@ -235,13 +252,55 @@
 
     if (success) {
       if (activeTrack.value?.path === track.path) {
-        activeTrack.value = null
+        stop()
       }
       showDeleteModal.value = false
       fileToDelete.value = null
       await refreshFiles(false)
     } else {
       alert('Failed to delete file from disk.')
+    }
+  }
+
+  async function handleConfirmClearAll() {
+    if (audioFiles.value.length === 0) {
+      showDeleteModal.value = false
+      return
+    }
+
+    // Stop playback immediately
+    stop()
+
+    const files = [...audioFiles.value]
+    let success = false
+
+    if (window.electronAPI?.deleteFiles) {
+      success = await window.electronAPI.deleteFiles(files.map((f) => f.path))
+    } else if (window.electronAPI) {
+      const results = await Promise.all(
+        files.map((f) => window.electronAPI!.deleteFile(f.path))
+      )
+      success = results.some(Boolean)
+    } else {
+      try {
+        const results = await Promise.all(
+          files.map((f) =>
+            fetch(`http://127.0.0.1:8000/api/files?path=${encodeURIComponent(f.path)}`, {
+              method: 'DELETE',
+            }).then((res) => res.ok).catch(() => false)
+          )
+        )
+        success = results.some(Boolean)
+      } catch {
+        success = false
+      }
+    }
+
+    showDeleteModal.value = false
+    await refreshFiles(true)
+
+    if (!success && files.length > 0) {
+      alert('Failed to clear some or all audio files.')
     }
   }
 
@@ -312,9 +371,11 @@
           :active-track="activeTrack"
           :is-playing="isPlaying"
           :output-dir="outputDir"
+          :is-generating="batchStatus === 'generating' || currentProcessingId !== null"
           @select-track="handleSelectTrack"
           @toggle-play="handleToggleTrackPlay"
           @request-delete="handleRequestDelete"
+          @request-clear-all="handleRequestClearAll"
           @refresh="refreshFiles"
         />
       </aside>
@@ -327,6 +388,9 @@
     <DeleteModal
       :show="showDeleteModal"
       :file="fileToDelete"
+      :mode="deleteModalMode"
+      :count="audioFiles.length"
+      :output-dir="outputDir"
       @confirm="handleConfirmDelete"
       @cancel="showDeleteModal = false"
     />

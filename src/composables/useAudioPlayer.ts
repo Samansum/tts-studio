@@ -165,6 +165,18 @@ export function useAudioPlayer() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  function stop() {
+    if (audioElement) {
+      audioElement.pause()
+      audioElement.currentTime = 0
+      audioElement.src = ''
+    }
+    activeTrack.value = null
+    isPlaying.value = false
+    currentTime.value = 0
+    duration.value = 0
+  }
+
   function reloadCurrentTrack(forcePlay = false) {
     if (activeTrack.value) {
       const audio = getAudioElement()
@@ -198,6 +210,7 @@ export function useAudioPlayer() {
     loadTrack,
     reloadCurrentTrack,
     togglePlay,
+    stop,
     seek,
     setVolume,
     toggleMute,

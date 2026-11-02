@@ -224,6 +224,21 @@ function registerIpcHandlers() {
     }
   })
 
+  ipcMain.handle('file:deleteAll', async (_event, filePaths: string[]) => {
+    let allOk = true
+    for (const filePath of filePaths) {
+      try {
+        if (fs.existsSync(filePath)) {
+          await fs.promises.unlink(filePath)
+        }
+      } catch (e) {
+        console.error('Failed to unlink file:', filePath, e)
+        allOk = false
+      }
+    }
+    return allOk
+  })
+
   ipcMain.handle('file:list', async (_event, dirPath: string) => {
     if (!dirPath || !fs.existsSync(dirPath)) return []
     try {
