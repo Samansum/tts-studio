@@ -119,16 +119,16 @@
 <template>
   <div class="studio-card rounded-xl p-4 flex flex-col space-y-4">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
       <div class="flex items-center space-x-2">
-        <Mic class="w-4 h-4 text-cyan-400" />
-        <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+        <Mic class="w-4 h-4 text-zinc-400" />
+        <h3 class="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
           Voice Architecture
         </h3>
       </div>
       <button
         @click="showAdvanced = !showAdvanced"
-        class="text-xs flex items-center space-x-1 text-slate-400 hover:text-cyan-300 transition"
+        class="text-xs flex items-center space-x-1 text-zinc-400 hover:text-zinc-200 transition"
       >
         <Sliders class="w-3.5 h-3.5" />
         <span>{{ showAdvanced ? 'Simple' : 'Parameters' }}</span>
@@ -138,29 +138,29 @@
     <!-- Voice Cloning Reference Audio -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between text-xs">
-        <span class="font-medium text-slate-300">Reference WAV (Zero-Shot Cloning)</span>
-        <span class="text-[11px] text-slate-500 font-mono">Optional</span>
+        <span class="font-medium text-zinc-300">Reference WAV (Zero-Shot Cloning)</span>
+        <span class="text-[11px] text-zinc-500 font-mono">Optional</span>
       </div>
 
       <!-- File Selected State -->
       <div
         v-if="modelValue.referenceWavPath"
-        class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/90 border border-cyan-800/50 text-xs"
+        class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-950/80 border border-zinc-700 text-xs"
       >
         <div class="flex items-center space-x-2.5 truncate mr-2">
           <button
             @click="togglePreviewReference"
-            class="w-7 h-7 flex-shrink-0 rounded-full bg-cyan-950 border border-cyan-500/50 flex items-center justify-center text-cyan-400 hover:bg-cyan-900 transition"
+            class="w-7 h-7 flex-shrink-0 rounded-full bg-zinc-800 border border-zinc-600 flex items-center justify-center text-zinc-200 hover:bg-zinc-700 hover:text-white transition"
             :title="isReferencePlaying ? 'Pause Reference' : 'Play Reference'"
           >
             <Pause v-if="isReferencePlaying" class="w-3.5 h-3.5" />
             <Play v-else class="w-3.5 h-3.5 ml-0.5" />
           </button>
           <div class="truncate">
-            <p class="font-mono font-medium text-cyan-300 truncate">
+            <p class="font-mono font-medium text-zinc-200 truncate">
               {{ modelValue.referenceWavName }}
             </p>
-            <p class="text-[10px] text-slate-400 truncate font-mono">
+            <p class="text-[10px] text-zinc-500 truncate font-mono">
               {{ modelValue.referenceWavPath }}
             </p>
           </div>
@@ -168,7 +168,7 @@
 
         <button
           @click="handleClearReference"
-          class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-400 transition"
+          class="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-rose-400 transition"
           title="Remove Reference"
         >
           <X class="w-4 h-4" />
@@ -179,13 +179,13 @@
       <div
         v-else
         @click="handleBrowseReference"
-        class="border border-dashed border-slate-700 hover:border-cyan-500/60 rounded-lg p-3 text-center cursor-pointer transition bg-slate-900/40 hover:bg-slate-900/70 group"
+        class="border border-dashed border-zinc-800 hover:border-zinc-600 rounded-lg p-3 text-center cursor-pointer transition bg-zinc-900/40 hover:bg-zinc-900/70 group"
       >
         <FolderOpen
-          class="w-5 h-5 mx-auto mb-1 text-slate-400 group-hover:text-cyan-400 transition"
+          class="w-5 h-5 mx-auto mb-1 text-zinc-400 group-hover:text-zinc-200 transition"
         />
-        <p class="text-xs text-slate-300 font-medium">Browse Reference Audio (.wav, .mp3)</p>
-        <p class="text-[10px] text-slate-500 mt-0.5">
+        <p class="text-xs text-zinc-300 font-medium">Browse Reference Audio (.wav, .mp3)</p>
+        <p class="text-[10px] text-zinc-500 mt-0.5">
           Clones voice timbre and acoustic tone directly
         </p>
       </div>
@@ -194,11 +194,11 @@
     <!-- Voice Style & Prompt Input -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between text-xs">
-        <span class="font-medium text-slate-300 flex items-center space-x-1.5">
+        <span class="font-medium text-zinc-300 flex items-center space-x-1.5">
           <Sparkles class="w-3.5 h-3.5 text-amber-400" />
           <span>Voice Style & Prompt</span>
         </span>
-        <span class="text-[10px] text-slate-500 font-mono">Natural Language</span>
+        <span class="text-[10px] text-zinc-500 font-mono">Natural Language</span>
       </div>
 
       <textarea
@@ -206,7 +206,7 @@
         @input="updatePrompt"
         rows="2"
         placeholder="(e.g. warm male narrator, calm, confident, expressive prosody)"
-        class="w-full text-xs font-mono bg-slate-900/90 border border-slate-700/80 rounded-lg p-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/30 transition resize-none"
+        class="w-full text-xs font-mono bg-zinc-950/70 border border-zinc-800 rounded-lg p-2.5 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/20 transition resize-none"
       ></textarea>
 
       <!-- Preset Pills -->
@@ -215,7 +215,7 @@
           v-for="preset in presetStyles"
           :key="preset"
           @click="applyPreset(preset)"
-          class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-cyan-950/70 text-slate-300 hover:text-cyan-300 border border-slate-700 hover:border-cyan-600/50 transition truncate max-w-[210px]"
+          class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800/80 hover:bg-zinc-750 text-zinc-300 hover:text-white border border-zinc-700/80 hover:border-zinc-600 transition truncate max-w-[210px]"
         >
           {{ preset }}
         </button>
@@ -223,12 +223,12 @@
     </div>
 
     <!-- Advanced Parameters Drawer -->
-    <div v-if="showAdvanced" class="pt-2 border-t border-slate-800/80 space-y-3">
+    <div v-if="showAdvanced" class="pt-2 border-t border-zinc-800/80 space-y-3">
       <!-- Guidance Scale CFG -->
       <div class="space-y-1">
         <div class="flex items-center justify-between text-[11px]">
-          <span class="text-slate-400">CFG Guidance Scale</span>
-          <span class="font-mono text-cyan-400 font-semibold">{{
+          <span class="text-zinc-400">CFG Guidance Scale</span>
+          <span class="font-mono text-zinc-200 font-semibold">{{
             modelValue.cfgValue.toFixed(1)
           }}</span>
         </div>
@@ -239,9 +239,9 @@
           step="0.1"
           :value="modelValue.cfgValue"
           @input="updateCfg"
-          class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+          class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-200"
         />
-        <div class="flex justify-between text-[9px] text-slate-500 font-mono">
+        <div class="flex justify-between text-[9px] text-zinc-500 font-mono">
           <span>Natural (1.5)</span>
           <span>Balanced (2.0)</span>
           <span>Strong Prompt (4.0)</span>
@@ -251,8 +251,8 @@
       <!-- Inference Steps -->
       <div class="space-y-1">
         <div class="flex items-center justify-between text-[11px]">
-          <span class="text-slate-400">Inference Timesteps</span>
-          <span class="font-mono text-cyan-400 font-semibold"
+          <span class="text-zinc-400">Inference Timesteps</span>
+          <span class="font-mono text-zinc-200 font-semibold"
             >{{ modelValue.inferenceTimesteps }} steps</span
           >
         </div>
@@ -263,9 +263,9 @@
           step="1"
           :value="modelValue.inferenceTimesteps"
           @input="updateSteps"
-          class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+          class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-200"
         />
-        <div class="flex justify-between text-[9px] text-slate-500 font-mono">
+        <div class="flex justify-between text-[9px] text-zinc-500 font-mono">
           <span>Fast (5)</span>
           <span>Standard (10)</span>
           <span>High Detail (25)</span>

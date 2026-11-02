@@ -1,15 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted, onUnmounted } from 'vue'
-  import {
-    Cpu,
-    RefreshCw,
-    Minus,
-    Square,
-    X,
-    Sparkles,
-    Zap,
-    HardDrive,
-  } from 'lucide-vue-next'
+  import { Cpu, RefreshCw, Minus, Square, X, Sparkles, Zap, HardDrive } from 'lucide-vue-next'
   import type { BackendStatus } from '../types'
 
   const status = ref<BackendStatus>({
@@ -83,28 +74,28 @@
 
 <template>
   <header
-    class="h-14 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md px-4 flex items-center justify-between select-none z-30 flex-shrink-0"
+    class="h-14 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur-md px-4 flex items-center justify-between select-none z-30 flex-shrink-0"
     style="-webkit-app-region: drag"
   >
     <!-- Left: Brand -->
     <div class="flex items-center space-x-3" style="-webkit-app-region: no-drag">
       <div
-        class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-[1.5px] shadow-lg shadow-cyan-500/10"
+        class="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-700 via-zinc-600 to-zinc-800 p-[1px] shadow-lg shadow-black/50"
       >
-        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-          <Sparkles class="w-5 h-5 text-cyan-400" />
+        <div class="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center">
+          <Sparkles class="w-5 h-5 text-white" />
         </div>
       </div>
       <div>
         <div class="flex items-center space-x-2">
           <span class="font-bold text-base tracking-tight text-white">TTS Studio</span>
           <span
-            class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-cyan-950/70 border border-cyan-700/50 text-cyan-300 uppercase tracking-wider"
+            class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-zinc-800/90 border border-zinc-700/80 text-zinc-300 uppercase tracking-wider"
           >
             VoxCPM 2
           </span>
         </div>
-        <p class="text-[11px] text-slate-400 font-mono -mt-0.5">Desktop Sidecar Architecture</p>
+        <p class="text-[11px] text-zinc-400 font-mono -mt-0.5">Desktop Sidecar Architecture</p>
       </div>
     </div>
 
@@ -140,13 +131,13 @@
         class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full border"
         :class="
           status.cudaAvailable
-            ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300'
-            : 'bg-slate-800/60 border-slate-700 text-slate-400'
+            ? 'bg-zinc-800/80 border-zinc-700 text-zinc-200'
+            : 'bg-zinc-850/60 border-zinc-800 text-zinc-500'
         "
         :title="status.cudaAvailable ? `GPU: ${status.deviceName}` : 'Running on CPU'"
       >
-        <Zap v-if="status.cudaAvailable" class="w-3.5 h-3.5 text-indigo-400" />
-        <Cpu v-else class="w-3.5 h-3.5 text-slate-400" />
+        <Zap v-if="status.cudaAvailable" class="w-3.5 h-3.5 text-amber-400" />
+        <Cpu v-else class="w-3.5 h-3.5 text-zinc-500" />
         <span class="max-w-[150px] truncate">
           {{ status.cudaAvailable ? status.deviceName : 'CPU Mode' }}
         </span>
@@ -155,10 +146,10 @@
       <!-- VRAM Usage Pill -->
       <div
         v-if="status.cudaAvailable && status.vramTotalMB > 0"
-        class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-800/70 border border-slate-700/60 text-slate-300"
+        class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-zinc-800/80 border border-zinc-700/80 text-zinc-300"
         :title="`Allocated: ${status.vramAllocatedMB} MB / Total: ${status.vramTotalMB} MB`"
       >
-        <HardDrive class="w-3.5 h-3.5 text-cyan-400" />
+        <HardDrive class="w-3.5 h-3.5 text-zinc-400" />
         <span
           >VRAM: {{ (status.vramAllocatedMB / 1024).toFixed(1) }} /
           {{ (status.vramTotalMB / 1024).toFixed(1) }} GB</span
@@ -172,8 +163,8 @@
           status.isFallbackMock
             ? 'bg-amber-950/40 border-amber-500/40 text-amber-300'
             : status.modelReady
-              ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-300'
-              : 'bg-slate-800 border-slate-700 text-slate-400'
+              ? 'bg-zinc-800 border-zinc-600 text-zinc-200'
+              : 'bg-zinc-850 border-zinc-800 text-zinc-500'
         "
       >
         <span>{{
@@ -188,7 +179,7 @@
       <!-- Reconnect / Refresh button -->
       <button
         @click="fetchStatus"
-        class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition"
+        class="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
         :class="{ 'animate-spin': isChecking }"
         title="Check Backend Telemetry"
       >
@@ -200,19 +191,19 @@
     <div class="flex items-center space-x-1" style="-webkit-app-region: no-drag">
       <button
         @click="handleMinimize"
-        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-800 text-slate-400 hover:text-white transition"
+        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
       >
         <Minus class="w-3.5 h-3.5" />
       </button>
       <button
         @click="handleMaximize"
-        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-800 text-slate-400 hover:text-white transition"
+        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
       >
         <Square class="w-3 h-3" />
       </button>
       <button
         @click="handleClose"
-        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-rose-600 text-slate-400 hover:text-white transition"
+        class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-rose-600 text-zinc-400 hover:text-white transition"
       >
         <X class="w-4 h-4" />
       </button>

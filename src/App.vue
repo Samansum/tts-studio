@@ -256,7 +256,7 @@
 </script>
 
 <template>
-  <div class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+  <div class="h-screen w-screen flex flex-col bg-zinc-950 text-zinc-100 overflow-hidden">
     <!-- Top Bar with Hardware & Backend Telemetry -->
     <TopBar />
 

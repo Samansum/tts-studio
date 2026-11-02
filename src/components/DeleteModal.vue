@@ -30,7 +30,7 @@
     class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none"
   >
     <div
-      class="studio-card rounded-2xl w-full max-w-md p-5 border border-rose-900/60 shadow-2xl bg-slate-900/95 space-y-4 animate-in fade-in zoom-in-95 duration-150"
+      class="studio-card rounded-2xl w-full max-w-md p-5 border border-rose-900/60 shadow-2xl bg-zinc-900/95 space-y-4 animate-in fade-in zoom-in-95 duration-150"
     >
       <div class="flex items-start space-x-3">
         <div
@@ -40,7 +40,7 @@
         </div>
         <div class="space-y-1">
           <h3 class="text-sm font-bold text-white">Delete Audio Track?</h3>
-          <p class="text-xs text-slate-300">
+          <p class="text-xs text-zinc-300">
             This action will permanently delete the audio file from your hard drive. This operation
             cannot be undone.
           </p>
@@ -48,16 +48,16 @@
       </div>
 
       <!-- File Details Box -->
-      <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-1 font-mono">
-        <div class="text-slate-200 font-semibold truncate">{{ file.name }}</div>
-        <div class="text-slate-500 text-[11px] truncate">{{ file.path }}</div>
+      <div class="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-xs space-y-1 font-mono">
+        <div class="text-zinc-200 font-semibold truncate">{{ file.name }}</div>
+        <div class="text-zinc-500 text-[11px] truncate">{{ file.path }}</div>
       </div>
 
       <!-- Modal Footer -->
-      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-800">
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-zinc-800">
         <button
           @click="emit('cancel')"
-          class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium transition"
+          class="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 font-medium border border-zinc-700 transition"
         >
           Cancel
         </button>

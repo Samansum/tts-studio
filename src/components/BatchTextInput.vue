@@ -67,16 +67,16 @@
     <div class="flex items-center justify-between studio-card p-3 rounded-xl flex-shrink-0">
       <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2">
-          <FileText class="w-4 h-4 text-cyan-400" />
-          <h2 class="text-sm font-semibold text-slate-100">Batch Text Segments</h2>
+          <FileText class="w-4 h-4 text-zinc-400" />
+          <h2 class="text-sm font-semibold text-zinc-100">Batch Text Segments</h2>
         </div>
         <div
-          class="flex items-center space-x-2 text-xs font-mono text-slate-400 border-l border-slate-700/80 pl-3"
+          class="flex items-center space-x-2 text-xs font-mono text-zinc-400 border-l border-zinc-800 pl-3"
         >
-          <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+          <span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
             {{ items.length }} {{ items.length === 1 ? 'item' : 'items' }}
           </span>
-          <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+          <span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
             {{ totalCharacters }} chars
           </span>
           <span
@@ -92,25 +92,25 @@
         <button
           @click="showImportModal = true"
           :disabled="batchStatus === 'generating' || currentProcessingId !== null"
-          class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5 disabled:opacity-40"
+          class="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium border border-zinc-700 transition flex items-center space-x-1.5 disabled:opacity-40"
         >
-          <Split class="w-3.5 h-3.5 text-indigo-400" />
+          <Split class="w-3.5 h-3.5 text-zinc-400" />
           <span>Split Import</span>
         </button>
 
         <button
           @click="emit('addItem')"
           :disabled="batchStatus === 'generating' || currentProcessingId !== null"
-          class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5 disabled:opacity-40"
+          class="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium border border-zinc-700 transition flex items-center space-x-1.5 disabled:opacity-40"
         >
-          <Plus class="w-3.5 h-3.5 text-cyan-400" />
+          <Plus class="w-3.5 h-3.5 text-zinc-400" />
           <span>Add Segment</span>
         </button>
 
         <button
           @click="emit('clearAll')"
           :disabled="batchStatus === 'generating' || currentProcessingId !== null"
-          class="px-2.5 py-1.5 rounded-lg hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-medium border border-transparent hover:border-rose-900/40 transition disabled:opacity-40"
+          class="px-2.5 py-1.5 rounded-lg hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 text-xs font-medium border border-transparent hover:border-rose-900/40 transition disabled:opacity-40"
         >
           Clear
         </button>
@@ -120,7 +120,7 @@
           v-if="batchStatus !== 'generating'"
           @click="emit('startBatch')"
           :disabled="currentProcessingId !== null"
-          class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-cyan-500/20 transition flex items-center space-x-1.5 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+          class="px-4 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs shadow-md transition flex items-center space-x-1.5 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
         >
           <Play class="w-3.5 h-3.5 fill-current" />
           <span>Synthesize All</span>
@@ -141,20 +141,20 @@
     <!-- Active Batch Progress Bar -->
     <div
       v-if="batchStatus === 'generating'"
-      class="studio-card p-3 rounded-xl bg-slate-900/90 border-cyan-800/50 space-y-2"
+      class="studio-card p-3 rounded-xl bg-zinc-900 border border-zinc-700 space-y-2"
     >
       <div class="flex items-center justify-between text-xs">
-        <div class="flex items-center space-x-2 text-cyan-400 font-medium">
-          <Loader2 class="w-3.5 h-3.5 animate-spin" />
+        <div class="flex items-center space-x-2 text-zinc-200 font-medium">
+          <Loader2 class="w-3.5 h-3.5 animate-spin text-zinc-300" />
           <span>Synthesizing batch through VoxCPM 2 sidecar...</span>
         </div>
-        <span class="font-mono font-semibold text-cyan-300">
+        <span class="font-mono font-semibold text-white">
           {{ completedCount }}/{{ items.length }} ({{ batchProgressPercent }}%)
         </span>
       </div>
-      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+      <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
         <div
-          class="h-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-emerald-400 transition-all duration-300 rounded-full"
+          class="h-full bg-white transition-all duration-300 rounded-full"
           :style="{ width: `${batchProgressPercent}%` }"
         ></div>
       </div>
@@ -168,12 +168,12 @@
         class="studio-card rounded-xl p-3 border transition-all duration-200"
         :class="[
           item.status === 'processing'
-            ? 'border-cyan-500/80 shadow-[0_0_15px_-3px_rgba(6,182,212,0.25)] bg-slate-900/90'
+            ? 'border-zinc-400 shadow-[0_0_15px_-3px_rgba(255,255,255,0.08)] bg-zinc-900'
             : item.status === 'completed'
-              ? 'border-emerald-600/30 bg-slate-900/40'
+              ? 'border-emerald-600/30 bg-zinc-900/40'
               : item.status === 'failed'
                 ? 'border-rose-600/50 bg-rose-950/20'
-                : 'border-slate-800 hover:border-slate-700 bg-slate-900/60',
+                : 'border-zinc-850 hover:border-zinc-700 bg-zinc-900/60',
         ]"
       >
         <!-- Card Top Bar: Badge, status, and item controls -->
@@ -181,13 +181,13 @@
           <div class="flex items-center space-x-2">
             <!-- Padded Sequence Badge -->
             <span
-              class="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700/80 text-cyan-400 shadow-sm flex items-center space-x-1"
+              class="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700/80 text-zinc-200 shadow-sm flex items-center space-x-1"
             >
-              <Hash class="w-3 h-3 text-cyan-500" />
+              <Hash class="w-3 h-3 text-zinc-400" />
               <span>{{ item.sequenceBadge }}</span>
             </span>
 
-            <span class="font-mono text-[11px] text-slate-400">
+            <span class="font-mono text-[11px] text-zinc-400">
               {{ item.outputFileName }}
             </span>
 
@@ -195,7 +195,7 @@
             <div class="flex items-center space-x-1 text-xs">
               <span
                 v-if="item.status === 'processing'"
-                class="flex items-center space-x-1 text-cyan-400 text-[11px] font-mono"
+                class="flex items-center space-x-1 text-zinc-300 text-[11px] font-mono"
               >
                 <Loader2 class="w-3 h-3 animate-spin" />
                 <span>{{ item.progress }}%</span>
@@ -215,7 +215,7 @@
                 <AlertCircle class="w-3.5 h-3.5" />
                 <span>Error</span>
               </span>
-              <span v-else class="flex items-center space-x-1 text-slate-500 text-[11px] font-mono">
+              <span v-else class="flex items-center space-x-1 text-zinc-500 text-[11px] font-mono">
                 <Clock class="w-3 h-3" />
                 <span>Pending</span>
               </span>
@@ -241,24 +241,24 @@
                 (currentProcessingId !== null && currentProcessingId !== item.id) ||
                 !item.text.trim()
               "
-              class="p-1.5 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-400 hover:text-cyan-300 border border-cyan-800/40 hover:border-cyan-700/60 disabled:opacity-25 disabled:pointer-events-none transition flex items-center justify-center active:scale-95 shadow-sm"
+              class="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-200 hover:text-white border border-zinc-700 hover:border-zinc-600 disabled:opacity-25 disabled:pointer-events-none transition flex items-center justify-center active:scale-95 shadow-sm"
               :title="getItemSynthesizeTooltip(item)"
             >
               <Loader2
                 v-if="item.status === 'processing'"
-                class="w-3.5 h-3.5 animate-spin text-cyan-400"
+                class="w-3.5 h-3.5 animate-spin text-zinc-300"
               />
               <Play v-else class="w-3.5 h-3.5 fill-current" />
             </button>
 
-            <div class="h-3.5 w-px bg-slate-800 mx-0.5"></div>
+            <div class="h-3.5 w-px bg-zinc-800 mx-0.5"></div>
 
             <button
               @click="emit('moveItem', index, 'up')"
               :disabled="
                 index === 0 || batchStatus === 'generating' || currentProcessingId !== null
               "
-              class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition"
+              class="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white disabled:opacity-20 transition"
               title="Move Up"
             >
               <ArrowUp class="w-3.5 h-3.5" />
@@ -270,7 +270,7 @@
                 batchStatus === 'generating' ||
                 currentProcessingId !== null
               "
-              class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition"
+              class="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white disabled:opacity-20 transition"
               title="Move Down"
             >
               <ArrowDown class="w-3.5 h-3.5" />
@@ -278,7 +278,7 @@
             <button
               @click="emit('duplicateItem', item.id)"
               :disabled="batchStatus === 'generating' || currentProcessingId !== null"
-              class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition"
+              class="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white disabled:opacity-20 transition"
               title="Duplicate Card"
             >
               <Copy class="w-3.5 h-3.5" />
@@ -286,7 +286,7 @@
             <button
               @click="emit('removeItem', item.id)"
               :disabled="batchStatus === 'generating' || currentProcessingId !== null"
-              class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-400 disabled:opacity-20 transition"
+              class="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-rose-400 disabled:opacity-20 transition"
               title="Remove Card"
             >
               <Trash2 class="w-3.5 h-3.5" />
@@ -300,26 +300,26 @@
           @input="emit('updateText', item.id, ($event.target as HTMLTextAreaElement).value)"
           rows="2"
           placeholder="Enter text to synthesize for this sequence segment..."
-          class="w-full text-xs font-sans bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/20 transition resize-y min-h-[56px]"
+          class="w-full text-xs font-sans bg-zinc-950/70 border border-zinc-800 rounded-lg p-2.5 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/20 transition resize-y min-h-[56px]"
         ></textarea>
 
         <!-- Progress bar for individual card while processing -->
         <div v-if="item.status === 'processing'" class="mt-2">
-          <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+          <div class="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
             <div
-              class="h-full bg-cyan-400 transition-all duration-200"
+              class="h-full bg-white transition-all duration-200"
               :style="{ width: `${item.progress}%` }"
             ></div>
           </div>
         </div>
 
         <!-- Card bottom info -->
-        <div class="flex items-center justify-between mt-1 text-[10px] text-slate-500 font-mono">
+        <div class="flex items-center justify-between mt-1 text-[10px] text-zinc-500 font-mono">
           <span
             >{{ item.characterCount }} characters (~{{ Math.ceil(item.characterCount / 15) }}s
             estimated)</span
           >
-          <span v-if="item.outputPath" class="text-slate-400 truncate max-w-[280px]">
+          <span v-if="item.outputPath" class="text-zinc-400 truncate max-w-[280px]">
             {{ item.outputFileName }}
           </span>
         </div>
@@ -329,39 +329,39 @@
     <!-- Bulk Import Modal -->
     <div
       v-if="showImportModal"
-      class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
     >
       <div
-        class="studio-card rounded-2xl w-full max-w-lg p-5 border border-slate-700 shadow-2xl space-y-4"
+        class="studio-card rounded-2xl w-full max-w-lg p-5 border border-zinc-800 bg-zinc-900 shadow-2xl space-y-4"
       >
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div class="flex items-center space-x-2">
-            <Split class="w-5 h-5 text-indigo-400" />
+            <Split class="w-5 h-5 text-zinc-300" />
             <h3 class="text-sm font-bold text-white">Split / Bulk Import Text</h3>
           </div>
-          <button @click="showImportModal = false" class="text-slate-400 hover:text-white text-xs">
+          <button @click="showImportModal = false" class="text-zinc-400 hover:text-white text-xs">
             ✕
           </button>
         </div>
 
         <div class="space-y-2">
-          <label class="text-xs text-slate-300 font-medium">Paste script or long text:</label>
+          <label class="text-xs text-zinc-300 font-medium">Paste script or long text:</label>
           <textarea
             v-model="bulkText"
             rows="6"
             placeholder="Paste multiple lines or paragraphs to automatically slice into sequential TTS segments..."
-            class="w-full text-xs font-mono bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+            class="w-full text-xs font-mono bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder-zinc-600"
           ></textarea>
         </div>
 
-        <div class="flex items-center space-x-4 text-xs text-slate-300">
-          <span class="font-medium text-slate-400">Split Method:</span>
+        <div class="flex items-center space-x-4 text-xs text-zinc-300">
+          <span class="font-medium text-zinc-400">Split Method:</span>
           <label class="flex items-center space-x-1.5 cursor-pointer">
-            <input type="radio" value="sentences" v-model="splitMode" class="accent-indigo-500" />
+            <input type="radio" value="sentences" v-model="splitMode" class="accent-white" />
             <span>By Sentences (.!?)</span>
           </label>
           <label class="flex items-center space-x-1.5 cursor-pointer">
-            <input type="radio" value="lines" v-model="splitMode" class="accent-indigo-500" />
+            <input type="radio" value="lines" v-model="splitMode" class="accent-white" />
             <span>By Line Breaks</span>
           </label>
         </div>
@@ -369,13 +369,13 @@
         <div class="flex items-center justify-end space-x-2 pt-2">
           <button
             @click="showImportModal = false"
-            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium transition"
+            class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 font-medium border border-zinc-700 transition"
           >
             Cancel
           </button>
           <button
             @click="handleBulkImportConfirm"
-            class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium transition shadow-lg shadow-indigo-600/30"
+            class="px-4 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-xs text-zinc-950 font-semibold transition shadow-md"
           >
             Generate Segments
           </button>
