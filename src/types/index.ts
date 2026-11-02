@@ -26,6 +26,15 @@ export interface BatchItem {
 
 export type BatchStatus = 'idle' | 'generating' | 'completed' | 'cancelled'
 
+export interface LoraItem {
+  id: string
+  name: string
+  actorName?: string
+  path: string | null
+  isPredefined?: boolean
+  exists?: boolean
+}
+
 export interface VoiceConfigData {
   referenceWavPath: string | null
   referenceWavName: string | null
@@ -33,6 +42,9 @@ export interface VoiceConfigData {
   cfgValue: number
   inferenceTimesteps: number
   denoise: boolean
+  loraId: string | null
+  loraName: string | null
+  loraPath: string | null
 }
 
 export interface BackendStatus {
@@ -47,6 +59,7 @@ export interface BackendStatus {
   modelReady: boolean
   activeJob: string | null
   isFallbackMock?: boolean
+  currentLora?: string | null
 }
 
 export interface SSEProgressEvent {
@@ -68,11 +81,15 @@ export interface SSEProgressEvent {
 
 export interface ElectronAPI {
   selectDirectory: (defaultPath?: string) => Promise<string | null>
-  selectFile: (filters?: { name: string; extensions: string[] }[]) => Promise<string | null>
+  selectFile: (
+    filters?: { name: string; extensions: string[] }[],
+    title?: string
+  ) => Promise<string | null>
   openPath: (filePath: string) => Promise<void>
   deleteFile: (filePath: string) => Promise<boolean>
   listFiles: (dirPath: string) => Promise<AudioFileItem[]>
   getBackendStatus: () => Promise<{ pid: number | null; port: number; status: string }>
+  getPredefinedLoras: () => Promise<LoraItem[]>
   minimize: () => void
   maximize: () => void
   close: () => void

@@ -3,7 +3,7 @@ import { spawn, execSync, ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import http from 'http'
-import type { AudioFileItem } from '../src/types'
+import type { AudioFileItem, LoraItem } from '../src/types'
 
 let mainWindow: BrowserWindow | null = null
 let backendProcess: ChildProcess | null = null
@@ -182,10 +182,10 @@ function registerIpcHandlers() {
 
   ipcMain.handle(
     'dialog:selectFile',
-    async (_event, filters?: { name: string; extensions: string[] }[]) => {
+    async (_event, filters?: { name: string; extensions: string[] }[], title?: string) => {
       if (!mainWindow) return null
       const result = await dialog.showOpenDialog(mainWindow, {
-        title: 'Select Reference Audio File (Voice Cloning)',
+        title: title || 'Select File',
         properties: ['openFile'],
         filters: filters || [
           { name: 'Audio Files', extensions: ['wav', 'mp3', 'flac', 'ogg', 'm4a'] },
@@ -280,6 +280,21 @@ function registerIpcHandlers() {
       port: BACKEND_PORT,
       status: backendProcess ? 'running' : 'stopped',
     }
+  })
+
+  ipcMain.handle('lora:getPredefined', async (): Promise<LoraItem[]> => {
+    const projectRoot = app.isPackaged ? process.resourcesPath : path.resolve(__dirname, '..')
+    const adamPath = path.join(projectRoot, 'loras', 'Adam-vox-cpm-1100-steps-lora.safetensors')
+    return [
+      {
+        id: 'adam',
+        name: 'Adam',
+        actorName: 'Adam',
+        path: adamPath,
+        isPredefined: true,
+        exists: fs.existsSync(adamPath),
+      },
+    ]
   })
 
   ipcMain.on('window:minimize', () => {

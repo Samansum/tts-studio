@@ -43,10 +43,13 @@
   const voiceConfig = ref<VoiceConfigData>({
     referenceWavPath: null,
     referenceWavName: null,
-    voicePrompt: '(warm male narrator, calm, confident)',
+    voicePrompt: '',
     cfgValue: 2.0,
     inferenceTimesteps: 10,
     denoise: false,
+    loraId: 'none',
+    loraName: 'None',
+    loraPath: null,
   })
 
   // Output folder & library files

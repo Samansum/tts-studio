@@ -33,8 +33,25 @@ async def get_status() -> Dict[str, Any]:
         "model_name": hw["model_name"],
         "model_ready": hw["model_ready"],
         "is_fallback_mock": hw["is_fallback_mock"],
-        "load_error": hw.get("error")
+        "load_error": hw.get("error"),
+        "current_lora": hw.get("current_lora")
     }
+
+@get("/api/loras/predefined")
+async def get_predefined_loras() -> List[Dict[str, Any]]:
+    """Returns predefined LoRA models shipped with the application."""
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    adam_path = os.path.join(project_root, "loras", "Adam-vox-cpm-1100-steps-lora.safetensors")
+    return [
+        {
+            "id": "adam",
+            "name": "Adam",
+            "actorName": "Adam",
+            "path": adam_path,
+            "exists": os.path.isfile(adam_path),
+            "isPredefined": True
+        }
+    ]
 
 @post("/api/tts/synthesize")
 async def synthesize_single(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -52,6 +69,7 @@ async def synthesize_single(data: Dict[str, Any]) -> Dict[str, Any]:
     cfg_value = float(data.get("cfg_value", 2.0))
     inference_timesteps = int(data.get("inference_timesteps", 10))
     denoise = bool(data.get("denoise", False))
+    lora_path = data.get("lora_path") or data.get("loraPath")
 
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(
@@ -63,7 +81,8 @@ async def synthesize_single(data: Dict[str, Any]) -> Dict[str, Any]:
             voice_prompt=voice_prompt,
             cfg_value=cfg_value,
             inference_timesteps=inference_timesteps,
-            denoise=denoise
+            denoise=denoise,
+            lora_path=lora_path
         )
     )
     return {"status": "ok", "result": result}
@@ -73,6 +92,7 @@ async def batch_generator(request_payload: Dict[str, Any]) -> AsyncGenerator[str
     items: List[Dict[str, Any]] = request_payload.get("items", [])
     voice_config: Dict[str, Any] = request_payload.get("voice_config", {})
     output_dir: str = request_payload.get("output_dir", "")
+    lora_path = voice_config.get("loraPath") or voice_config.get("lora_path")
 
     total = len(items)
     completed_count = 0
@@ -121,6 +141,7 @@ async def batch_generator(request_payload: Dict[str, Any]) -> AsyncGenerator[str
                     cfg_value=float(voice_config.get("cfgValue", 2.0)),
                     inference_timesteps=int(voice_config.get("inferenceTimesteps", 10)),
                     denoise=bool(voice_config.get("denoise", False)),
+                    lora_path=lora_path,
                     progress_callback=on_step_progress
                 )
                 loop.call_soon_threadsafe(queue.put_nowait, {"type": "done", "result": res})
@@ -235,6 +256,7 @@ async def on_app_shutdown():
 app = Litestar(
     route_handlers=[
         get_status,
+        get_predefined_loras,
         synthesize_single,
         batch_tts_stream,
         list_audio_files,
